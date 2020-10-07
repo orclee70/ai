@@ -1,0 +1,38 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from scipy import stats
+from sklearn.datasets import load_boston
+
+boston = load_boston()
+bostonDF = pd.DataFrame(boston.data, columns=boston.feature_names)
+
+bostonDF['PRICE'] = boston.target
+bostonDF.head()
+bostonDF.info()
+fig, axs = plt.subplots(figsize=(16,8), ncols=4, nrows=2)
+lm_features = ['RM','ZN','INDUS','NOX','AGE','PTRATIO','LSTAT','RAD']
+
+for i, feature in enumerate(lm_features):
+    row = int(i/4)
+    col = i%4
+    sns.regplot(x=feature, y='PRICE',data=bostonDF, ax=axs[row][col])
+
+    from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LinearRegression
+
+    y_target = bostonDF['PRICE']
+    X_data = bostonDF.drop(['PRICE'], axis=1, inplace=False)
+
+    X_train, X_test, y_train, y_test = train_test_split(X_data, y_target, test_size=0.3, random_state=156)
+
+    lr = LinearRegression()
+    lr.fit(X_train, y_train)
+    y_pred = lr.predict(X_test)
+
+print('절편 값:',lr.intercept_)
+print('회귀 계수 값:', np.round(lr.coef_,1))
+
+coeff = pd.Series(data=np.round(lr.coef_,1), index = X_data.columns)
+coeff.sort_values(ascending=False)
